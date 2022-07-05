@@ -3,11 +3,10 @@
 #include "System.h"
 
 int main(int argc, char **argv) {
-  // Declaration
   SDL_Window *window;
   SDL_Renderer *renderer;
   bool isRunning = true;
-  // Initialisation
+
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     printf("Unable to init SDL : %s", SDL_GetError());
     return 1;
@@ -19,15 +18,13 @@ int main(int argc, char **argv) {
     printf("Unable to create window : %s", SDL_GetError());
     return 1;
   }
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   if (renderer == NULL) {
     printf("Unable to create renderer : %s", SDL_GetError());
     return 1;
   }
 
   System system = System(renderer);
-  int x, y;
-
 
   // create render loop
   while (isRunning) {
@@ -36,10 +33,7 @@ int main(int argc, char **argv) {
       if (event.type == SDL_QUIT) {
         isRunning = false;
       }
-      if (event.type == SDL_MOUSEBUTTONDOWN) {
-        SDL_GetMouseState(&x, &y);
-        system.click(x, y);
-      }
+      system.handleEvent(&event);
     }
     system.render();
   }

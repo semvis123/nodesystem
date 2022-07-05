@@ -1,15 +1,21 @@
+#include <vector>
+#include <string>
+#include <functional>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include "Button.h"
+#include "EventHandler.h"
+#include "DropdownMenu.h"
 
 class System
 {
 private:
     SDL_Renderer *renderer;
-    Button *button;
+    std::vector<EventHandler *> eventHandlers;
+    std::vector<Renderable *> renderables;
 public:
     System(SDL_Renderer *renderer);
     ~System();
     void render();
-    void click(int x, int y);
+    void handleEvent(SDL_Event *event);
 };
