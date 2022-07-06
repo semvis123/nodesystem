@@ -6,6 +6,7 @@
 #include "Button.h"
 #include "EventHandler.h"
 #include "DropdownMenu.h"
+#include "SelectionList.h"
 
 class System
 {
@@ -18,4 +19,5 @@ public:
     ~System();
     void render();
     void handleEvent(SDL_Event *event);
+    void createMenu();
 };

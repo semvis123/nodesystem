@@ -4,27 +4,7 @@
 System::System(SDL_Renderer *renderer)
 {
     this->renderer = renderer;
-    for (int i = 0; i < 3; i++)
-    {
-        Button *button = new Button("Button " + std::to_string(i + 1), 100 + i * 100, 0, 100, 50, [i]() {
-            printf("Button clicked %d\n", i);
-        });
-        eventHandlers.push_back(button);
-        renderables.push_back(button);
-    }
-
-
-    std::vector<DropdownOption> options;
-    options.push_back({"option1", []() {
-        printf("option1\n");
-    }});
-    options.push_back({"option2", []() {
-        printf("option2\n");
-    }});
-
-    DropdownMenu *dropdownMenu = new DropdownMenu("Dropdown", 0, 0, 100, 50, options);
-    eventHandlers.push_back(dropdownMenu);
-    renderables.push_back(dropdownMenu);
+    createMenu();
 }
 
 System::~System()
@@ -52,4 +32,26 @@ void System::handleEvent(SDL_Event *event)
     {
         eventHandlers[i]->handleEvent(event);
     }
+}
+
+void System::createMenu()
+{
+    std::vector<DropdownOption> options;
+    options.push_back({"Open", []() {
+        printf("open file\n");
+    }});
+    options.push_back({"Save", []() {
+        printf("save file\n");
+    }});
+    options.push_back({"Save as", []() {
+        printf("save as\n");
+    }});
+
+    DropdownMenu *dropdownMenu = new DropdownMenu("File", 0, 0, 100, 30, options);
+    eventHandlers.push_back(dropdownMenu);
+    renderables.push_back(dropdownMenu);
+
+    SelectionList *selectionList = new SelectionList({"Item 1", "Item 2", "Item 3", "Item 4", "Item 5"}, 100, 0, 100, 108);
+    eventHandlers.push_back(selectionList);
+    renderables.push_back(selectionList);
 }

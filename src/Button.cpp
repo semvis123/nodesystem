@@ -10,10 +10,6 @@ Button::Button(std::string label, int x, int y, int width, int height, std::func
     this->callback = callback;
 }
 
-Button::~Button()
-{
-}
-
 void Button::render(SDL_Renderer *renderer) {
     SDL_Rect rect = {x, y, width, height};
     uint32_t color = isHovering ? 0xFF444400 : 0xFF446600;
@@ -29,24 +25,31 @@ void Button::handleEvent(SDL_Event *event) {
     int x, y;
     SDL_GetMouseState(&x, &y);
     bool isInside = inside(x, y);
-    if (event->type == SDL_MOUSEBUTTONDOWN) {
-        if (isInside){
-            isPressed = true;
-            onMouseDown();
-        }
-    } else if (event->type == SDL_MOUSEMOTION) {
-        if (isInside && !isHovering) {
-            onHover();
-            isHovering = true;
-        } else if (!isInside && isHovering) {
-            onLeave();
-            isHovering = false;
-        }
-    } else if (event->type == SDL_MOUSEBUTTONUP) {
-        if (isInside && isPressed) {
-            onClick();
-        }
-        isPressed = false;
+    switch (event->type) {
+        case SDL_MOUSEBUTTONDOWN:
+            if (isInside) {
+                isPressed = true;
+                onMouseDown();
+            }
+            break;
+        case SDL_MOUSEBUTTONUP:
+            if (isInside && isPressed) {
+                onClick();
+            }
+            isPressed = false;
+            break;
+        case SDL_MOUSEMOTION:
+            if (isHovering != isInside) {
+                if (isInside) {
+                    onHover();
+                } else {
+                    onLeave();
+                }
+            }
+            isHovering = isInside;
+            break;
+        default:
+            break;
     }
 }
 
