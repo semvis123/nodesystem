@@ -11,19 +11,19 @@ SelectionList::SelectionList(std::vector<std::string> items, int x, int y, int w
 
 void SelectionList::render(SDL_Renderer *renderer)
 {
-    uint32_t color = 0xFF336622;
+    uint32_t bgColor = 0xFF336622;
     uint32_t outlineColor = 0xFF000000;
     uint32_t selectedColor = 0xFF229900;
     uint32_t indicatorColor = 0xFF154522;
     uint32_t textColor = 0xFFFFFFFF;
+    uint32_t hoverColor = 0xFF225500;
 
     int fontHeight = 6;
-    int scrollBarWidth = 10;
 
     int w = width - scrollBarWidth;
     int h = height;
 
-    boxColor(renderer, x, y, x + width, y + height, color);
+    boxColor(renderer, x, y, x + width, y + height, bgColor);
 
     int topSpace = 0;
     if (scrollOffset > 0 && (items.size() - scrollOffset) * itemHeight < height) {
@@ -52,17 +52,23 @@ void SelectionList::render(SDL_Renderer *renderer)
                 stringColor(renderer, textPositionX, textPositionY, items[i].c_str(), textColor);
             } else {
                 // show that there is another item
-                boxColor(renderer, x + w / 4, textPositionY, x + w / 4 * 3, textPositionY + 4, indicatorColor);
+                boxColor(renderer, x + w / 4, y + h, x + w / 4 * 3, y + h - 4, indicatorColor);
             }
         } else {
+            int color = bgColor;
+            if (i == selectedIndex) {
+                color = selectedColor;
+            } else if (i == hoveringIndex) {
+                color = hoverColor;
+            }
+            boxColor(renderer, x, itemPositionY, x + w - 1, itemPositionY + itemHeight - 1, selectedIndex == i ? selectedColor : color);
             rectangleColor(renderer, x, itemPositionY, x + w, itemPositionY + itemHeight, outlineColor);
             stringColor(renderer, textPositionX, textPositionY, items[i].c_str(), textColor);
         }
     }
 
     // draw the scroll bar
-    int scrollBarHeight = h * h / (items.size() * itemHeight);
-    // scrollOffset is the amount of items that are hidden at the top
+    int scrollBarHeight = getScrollBarHeight();
     int maxScrollable = (items.size() - (h / itemHeight));
     int scrollBarOffset = (h - scrollBarHeight) * scrollOffset / maxScrollable;
     boxColor(renderer, x + w, y + scrollBarOffset, x + w + scrollBarWidth, y + scrollBarOffset + scrollBarHeight, indicatorColor);
@@ -73,35 +79,90 @@ void SelectionList::handleEvent(SDL_Event *event)
     int x, y;
     SDL_GetMouseState(&x, &y);
     bool isInside = inside(x, y);
+    bool isInsideItem = x < this->x + (width - scrollBarWidth);
+    int itemIndex = findItemIndexAt(x, y);
     
+    // scroll bar
+    int maxScrollable = (items.size() - (height / itemHeight));
+    int scrollBarOffset = (height - getScrollBarHeight()) * scrollOffset / maxScrollable;
+    int scrollBarHeight = getScrollBarHeight();
+
     switch (event->type) {
         case SDL_MOUSEBUTTONDOWN:
             if (isInside) {
-                isPressed = true;
+                if (isInsideItem) {
+                    if (itemIndex == selectedIndex) {
+                        selectedIndex = -1;
+                    } else {
+                        selectedIndex = itemIndex;
+                    }
+                } else {
+                    // scroll bar
+                    if (y < this->y + scrollBarOffset) {
+                        scrollOffset -= 1;
+                    } else if (y > this->y + scrollBarOffset + getScrollBarHeight()) {
+                        scrollOffset += 1;
+                    } else {
+                        // scroll bar grabbed
+                        hasScrollBar = true;
+                        // check at what height the scroll bar is grabbed
+                        scrollBarGrabY = y - this->y - scrollBarOffset;
+                    }
+                }
+            }
+            break;
+        case SDL_MOUSEMOTION:
+            if (isInside && isInsideItem) {
+                hoveringIndex = itemIndex;
+            } else if (hasScrollBar && (height - scrollBarHeight) > 0) {
+                // calculate the new scroll offset
+                scrollOffset = (y - this->y - scrollBarGrabY) * maxScrollable / (height - scrollBarHeight);
+                scrollOffset = fmax(0, fmin(maxScrollable, scrollOffset));
+            } else {
+                hoveringIndex = -1;
             }
             break;
         case SDL_MOUSEBUTTONUP:
-            if (isInside && isPressed) {
-                // isOpen = !isOpen;
-            }
-            isPressed = false;
-            break;
-        case SDL_MOUSEMOTION:
-            isHovering = isInside;
+            hasScrollBar = false;
             break;
         case SDL_MOUSEWHEEL:
             if (isInside) {
                 int scrollInterval = 10;
-                scrollWheelPosition -= event->wheel.y;
+                // check if we moved the scrollbar by mouse
+                if (fmin(fmax(scrollWheelPosition / scrollInterval, 0), maxScrollable) != scrollOffset) {
+                    scrollWheelPosition = scrollOffset * scrollInterval;
+                }
+
+
+                scrollWheelPosition -= abs(event->wheel.y) > 3 ? event->wheel.y : 10 * event->wheel.y;
                 scrollWheelPosition = fmax(scrollWheelPosition, 0);
-                scrollWheelPosition = fmin(scrollWheelPosition, (items.size() - (
-                    height / itemHeight)) * scrollInterval);
+                scrollWheelPosition = fmin(scrollWheelPosition, maxScrollable * scrollInterval);
                 scrollOffset = fmax(scrollWheelPosition / scrollInterval, 0);
+                scrollOffset = fmin(scrollOffset, maxScrollable);
             }
             break;
         default:
             break;
     }
+}
+
+int SelectionList::findItemIndexAt(int x, int y)
+{
+    int maxScrollable = (items.size() - (height / itemHeight));
+    int topSpace = 0;
+    if (scrollOffset > 0 && (items.size() - scrollOffset) * itemHeight < height) {
+        topSpace = -((items.size() - scrollOffset) * itemHeight - height);
+    }
+
+    if (y < this->y + topSpace) {
+        return -1;
+    }
+
+    int itemIndex = (y - this->y - topSpace) / itemHeight + scrollOffset;
+    if (itemIndex >= items.size()) {
+        return -1;
+    }
+    return itemIndex;
 }
 
 bool SelectionList::inside(int x, int y) {
@@ -148,6 +209,6 @@ void SelectionList::clearItems() {
     items.clear();
 }
 
-void SelectionList::setSelectedIndex(int index) {
-    selectedIndex = index;
+int SelectionList::getScrollBarHeight() {
+    return fmax(((80 * height) / (items.size() * itemHeight)), 40);
 }

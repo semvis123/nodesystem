@@ -51,7 +51,7 @@ void System::createMenu()
     eventHandlers.push_back(dropdownMenu);
     renderables.push_back(dropdownMenu);
 
-    SelectionList *selectionList = new SelectionList({"Item 1", "Item 2", "Item 3", "Item 4", "Item 5"}, 100, 0, 100, 108);
+    SelectionList *selectionList = new SelectionList({"Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6", "Item 7", "Item 8", "Item 9", "Item 10"}, 200, 100, 200, 200);
     eventHandlers.push_back(selectionList);
     renderables.push_back(selectionList);
 }
