@@ -19,7 +19,7 @@ class EditableTextBox: public Renderable, public EventHandler
 private:
     std::string placeholder, text;
     bool hasFocus, renderCursor, isHovering, isPressed;
-    int cursorPosition, selectionStart, selectionEnd, lastClick;
+    int cursorPosition, textRenderOffset = 0, selectionStart, selectionEnd, lastClick;
     int x, y, width, height;
 
     const int PADDING = 10, TEXT_WIDTH = 8, DOUBLE_CLICK_TIME = 500;

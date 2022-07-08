@@ -34,7 +34,7 @@ void EditableTextBox::render(SDL_Renderer *renderer)
     int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
     std::string renderText = text;
     if (text.length() > maxTextLength) {
-        renderText = text.substr(text.length() - maxTextLength);
+        renderText = text.substr(textRenderOffset, fmin(maxTextLength, text.length() - textRenderOffset));
     }
 
     // draw text or placeholder
@@ -46,14 +46,25 @@ void EditableTextBox::render(SDL_Renderer *renderer)
 
     // draw selection
     if (selectionStart != selectionEnd && selectionStart != cursorPosition && hasFocus) {
-        int selectionX = x + PADDING + TEXT_WIDTH * selectionStart;
+        int selectionX = x + PADDING + TEXT_WIDTH * (selectionStart - textRenderOffset);
         int selectionWidth = TEXT_WIDTH * (selectionEnd - selectionStart);
+        
+        // ensure selection is not outside of the text box
+        if (selectionX < x + PADDING) {
+            selectionWidth -= (x + PADDING - selectionX);
+            selectionX = x + PADDING;
+        }
+
+        if (selectionX + selectionWidth > x + width - PADDING) {
+            selectionWidth = x + width - PADDING - selectionX;
+        }
+
         boxColor(renderer, selectionX, y + PADDING, selectionX + selectionWidth, y + height - PADDING, 0x5500FF00);
     }
 
     // draw cursor
     if (renderCursor && hasFocus && (SDL_GetTicks() % 1000 < 500 || isPressed)) {
-        int cursorX = x + PADDING + TEXT_WIDTH * cursorPosition;
+        int cursorX = x + PADDING + TEXT_WIDTH * (cursorPosition - textRenderOffset);
         int cursorWidth = 2;
         boxColor(renderer, cursorX, y + PADDING, cursorX + cursorWidth, y + height - PADDING, CURSOR_COLOR);
     }
@@ -66,6 +77,7 @@ void EditableTextBox::handleEvent(SDL_Event *event)
             switch (event->key.keysym.sym) {
                 case (SDLK_BACKSPACE): {
                     // remove character at cursor position (or everything left of it when modifier is held), and remove selection if any
+                    int temp = cursorPosition;
                     int start = fmax(cursorPosition - 1, 0);
                     int end = cursorPosition;
 
@@ -82,16 +94,23 @@ void EditableTextBox::handleEvent(SDL_Event *event)
                     cursorPosition = start;
                     selectionStart = selectionEnd = cursorPosition;
 
+                    //  if cursor is off screen, move textRenderOffset to make it on screen
+                    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
+                    textRenderOffset = fmax(textRenderOffset - (temp - cursorPosition), 0);
+
                     break;
                 }
                 case (SDLK_DELETE): {
                     // remove character after cursor position (or everything right of it when modifier is held), and remove selection if any
+                    int temp = cursorPosition;
                     int start = cursorPosition;
                     int end = fmin(cursorPosition + 1, text.length());
 
                     if (selectionStart != selectionEnd) {
                         start = fmin(selectionStart, selectionEnd);
                         end = fmax(selectionStart, selectionEnd);
+                    } else {
+                        selectionStart = selectionEnd = cursorPosition;
                     }
 
                     if (event->key.keysym.mod & MODIFIER_KEY) {
@@ -99,7 +118,13 @@ void EditableTextBox::handleEvent(SDL_Event *event)
                     }
 
                     text.erase(start, end - start);
+                    cursorPosition = fmax(0, fmin(fmin(selectionStart, selectionEnd), text.length()));
                     selectionStart = selectionEnd = cursorPosition;
+
+                    // if cursor is off screen, move textRenderOffset to make it on screen
+                    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
+                    textRenderOffset = fmax(textRenderOffset - (temp - cursorPosition), 0);
+
                     break;
                 }
                 case (SDLK_LEFT): {
@@ -121,6 +146,13 @@ void EditableTextBox::handleEvent(SDL_Event *event)
                     } else {
                         selectionStart = selectionEnd;
                     }
+
+                    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
+                    if (cursorPosition < textRenderOffset) {
+                        textRenderOffset = fmax(textRenderOffset - (temp - cursorPosition), 0);
+                    }
+
+
                     break;
                 }
                 case (SDLK_RIGHT): {
@@ -132,6 +164,12 @@ void EditableTextBox::handleEvent(SDL_Event *event)
 
                     if (event->key.keysym.mod & MODIFIER_KEY) {
                         cursorPosition = text.length();
+                    }
+
+                    // if cursor is off screen, move textRenderOffset to make it on screen
+                    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
+                    if (cursorPosition > textRenderOffset + maxTextLength) {
+                        textRenderOffset = fmin(textRenderOffset + (cursorPosition - temp), text.length());
                     }
 
                     if (event->key.keysym.mod & KMOD_SHIFT) {
@@ -168,6 +206,13 @@ void EditableTextBox::handleEvent(SDL_Event *event)
                         selectionStart = selectionEnd;
                     }
                     cursorPosition = text.length();
+
+                    // if cursor is off screen, move textRenderOffset to make it on screen
+                    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
+                    if (cursorPosition - textRenderOffset >= maxTextLength) {
+                        textRenderOffset = cursorPosition - maxTextLength + 1;
+                    }
+
                     break;
                 }
                 case (SDLK_c): {
@@ -213,6 +258,14 @@ void EditableTextBox::handleEvent(SDL_Event *event)
 
             text.insert(cursorPosition, event->text.text);
             cursorPosition += strlen(event->text.text);
+
+
+            // if cursor is off screen, move textRenderOffset to make it on screen
+            int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
+            if (cursorPosition - textRenderOffset >= maxTextLength) {
+                textRenderOffset = cursorPosition - maxTextLength + 1;
+            }
+
             break;
         }
         case (SDL_MOUSEBUTTONDOWN): {
@@ -241,8 +294,7 @@ void EditableTextBox::handleEvent(SDL_Event *event)
 
             // select word on double click
             if (lastClick + DOUBLE_CLICK_TIME > SDL_GetTicks() && lastClick != 0) {
-                selectionStart = cursorPosition;
-                selectionEnd = cursorPosition;
+                selectionStart = selectionEnd = cursorPosition;
                 while (selectionStart > 0 && isalnum(text[selectionStart - 1])) {
                     selectionStart--;
                 }
@@ -282,11 +334,12 @@ bool EditableTextBox::inside(int x, int y)
 }
 
 int EditableTextBox::findCursorTextPosition(int x) {
+    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
     int cursorPosition = 0;
     for (int i = 0; i < text.length() + 1; i++) {
         if (x >= this->x + PADDING + TEXT_WIDTH * i) {
             cursorPosition = i;
         }
     }
-    return cursorPosition;
+    return fmin(cursorPosition + textRenderOffset, fmin(maxTextLength + textRenderOffset, text.length()));
 }
