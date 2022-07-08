@@ -54,4 +54,8 @@ void System::createMenu()
     SelectionList *selectionList = new SelectionList({"Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6", "Item 7", "Item 8", "Item 9", "Item 10"}, 200, 100, 200, 200);
     eventHandlers.push_back(selectionList);
     renderables.push_back(selectionList);
+
+    EditableTextBox *editableTextBox = new EditableTextBox("Placeholder", "", 400, 100, 200, 30);
+    eventHandlers.push_back(editableTextBox);
+    renderables.push_back(editableTextBox);
 }

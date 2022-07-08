@@ -3,10 +3,7 @@
 #include <functional>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
-#include "Button.h"
-#include "EventHandler.h"
-#include "DropdownMenu.h"
-#include "SelectionList.h"
+#include "gui_elements/gui_elements.h"
 
 class System
 {
