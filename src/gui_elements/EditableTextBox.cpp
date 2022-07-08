@@ -72,6 +72,8 @@ void EditableTextBox::render(SDL_Renderer *renderer)
 
 void EditableTextBox::handleEvent(SDL_Event *event)
 {
+    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
+
     switch (event->type) {
         case (SDL_KEYDOWN): {
             switch (event->key.keysym.sym) {
@@ -95,7 +97,6 @@ void EditableTextBox::handleEvent(SDL_Event *event)
                     selectionStart = selectionEnd = cursorPosition;
 
                     //  if cursor is off screen, move textRenderOffset to make it on screen
-                    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
                     textRenderOffset = fmax(textRenderOffset - (temp - cursorPosition), 0);
 
                     break;
@@ -122,7 +123,6 @@ void EditableTextBox::handleEvent(SDL_Event *event)
                     selectionStart = selectionEnd = cursorPosition;
 
                     // if cursor is off screen, move textRenderOffset to make it on screen
-                    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
                     textRenderOffset = fmax(textRenderOffset - (temp - cursorPosition), 0);
 
                     break;
@@ -167,7 +167,6 @@ void EditableTextBox::handleEvent(SDL_Event *event)
                     }
 
                     // if cursor is off screen, move textRenderOffset to make it on screen
-                    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
                     if (cursorPosition > textRenderOffset + maxTextLength) {
                         textRenderOffset = fmin(textRenderOffset + (cursorPosition - temp), text.length());
                     }
@@ -208,7 +207,6 @@ void EditableTextBox::handleEvent(SDL_Event *event)
                     cursorPosition = text.length();
 
                     // if cursor is off screen, move textRenderOffset to make it on screen
-                    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
                     if (cursorPosition - textRenderOffset >= maxTextLength) {
                         textRenderOffset = cursorPosition - maxTextLength + 1;
                     }
@@ -261,7 +259,6 @@ void EditableTextBox::handleEvent(SDL_Event *event)
 
 
             // if cursor is off screen, move textRenderOffset to make it on screen
-            int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
             if (cursorPosition - textRenderOffset >= maxTextLength) {
                 textRenderOffset = cursorPosition - maxTextLength + 1;
             }
