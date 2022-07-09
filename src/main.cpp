@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
+
 #include "System.h"
 
 int main(int argc, char **argv) {
@@ -11,9 +12,8 @@ int main(int argc, char **argv) {
     printf("Unable to init SDL : %s", SDL_GetError());
     return 1;
   }
-  window = SDL_CreateWindow(
-      "Nodesystem", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480,
-      SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+  window = SDL_CreateWindow("Nodesystem", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480,
+                            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
   if (window == NULL) {
     printf("Unable to create window : %s", SDL_GetError());
     return 1;
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     }
     system.render();
   }
-  
+
   // Free
   SDL_DestroyWindow(window);
   SDL_DestroyRenderer(renderer);

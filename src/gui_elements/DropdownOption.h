@@ -1,10 +1,9 @@
 #pragma once
 
-#include <string>
 #include <functional>
+#include <string>
 
-struct DropdownOption
-{
-    std::string name;
-    std::function<void()> value;
+struct DropdownOption {
+  std::string name;
+  std::function<void()> value;
 };

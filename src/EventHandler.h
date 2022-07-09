@@ -1,8 +1,8 @@
 #pragma once
 
-class EventHandler
-{
-public:
-    virtual void handleEvent(SDL_Event *event) = 0;
-};
+#include <SDL2/SDL.h>
 
+class EventHandler {
+ public:
+  virtual void handleEvent(SDL_Event *event) = 0;
+};
