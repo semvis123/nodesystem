@@ -1,4 +1,4 @@
 BasedOnStyle: Google
 IndentWidth: 2
 AllowShortFunctionsOnASingleLine: false
-ColumnLimit: 120
+ColumnLimit: 110

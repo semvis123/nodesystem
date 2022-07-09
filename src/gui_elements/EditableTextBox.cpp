@@ -1,7 +1,7 @@
 #include "EditableTextBox.h"
 
-EditableTextBox::EditableTextBox(std::string placeholder, std::string defaultText, int x, int y, int width, int height,
-                                 bool renderCursor) {
+EditableTextBox::EditableTextBox(std::string placeholder, std::string defaultText, int x, int y, int width,
+                                 int height, bool renderCursor) {
   this->placeholder = placeholder;
   this->text = defaultText;
   this->x = x;
@@ -58,7 +58,8 @@ void EditableTextBox::render(SDL_Renderer *renderer) {
       selectionWidth = x + width - PADDING - selectionX;
     }
 
-    boxColor(renderer, selectionX, y + PADDING, selectionX + selectionWidth, y + height - PADDING, 0x5500FF00);
+    boxColor(renderer, selectionX, y + PADDING, selectionX + selectionWidth, y + height - PADDING,
+             0x5500FF00);
   }
 
   // draw cursor
@@ -76,8 +77,8 @@ void EditableTextBox::handleEvent(SDL_Event *event) {
     case (SDL_KEYDOWN): {
       switch (event->key.keysym.sym) {
         case (SDLK_BACKSPACE): {
-          // remove character at cursor position (or everything left of it when modifier is held), and remove
-          // selection if any
+          // remove character at cursor position (or everything left of it when modifier is held),
+          // and remove selection if any
           int temp = cursorPosition;
           int start = fmax(cursorPosition - 1, 0);
           int end = cursorPosition;
@@ -101,8 +102,8 @@ void EditableTextBox::handleEvent(SDL_Event *event) {
           break;
         }
         case (SDLK_DELETE): {
-          // remove character after cursor position (or everything right of it when modifier is held), and
-          // remove selection if any
+          // remove character after cursor position (or everything right of it when modifier is
+          // held), and remove selection if any
           int temp = cursorPosition;
           int start = cursorPosition;
           int end = fmin(cursorPosition + 1, text.length());
@@ -128,7 +129,8 @@ void EditableTextBox::handleEvent(SDL_Event *event) {
           break;
         }
         case (SDLK_LEFT): {
-          // move cursor left (or to the beginning if modifier is held), and extend selection if shift is held
+          // move cursor left (or to the beginning if modifier is held), and extend selection if
+          // shift is held
           int temp = cursorPosition;
           if (cursorPosition > 0) {
             cursorPosition--;
@@ -155,7 +157,8 @@ void EditableTextBox::handleEvent(SDL_Event *event) {
           break;
         }
         case (SDLK_RIGHT): {
-          // move cursor right (or to the end if modifier is held), and extend selection if shift is held
+          // move cursor right (or to the end if modifier is held), and extend selection if shift is
+          // held
           int temp = cursorPosition;
           if (cursorPosition < text.length()) {
             cursorPosition++;
@@ -217,7 +220,8 @@ void EditableTextBox::handleEvent(SDL_Event *event) {
           if (event->key.keysym.mod & MODIFIER_KEY) {
             if (selectionStart != selectionEnd) {
               SDL_SetClipboardText(
-                  text.substr(fmin(selectionStart, selectionEnd), abs(selectionStart - selectionEnd)).c_str());
+                  text.substr(fmin(selectionStart, selectionEnd), abs(selectionStart - selectionEnd))
+                      .c_str());
             }
           }
           break;
