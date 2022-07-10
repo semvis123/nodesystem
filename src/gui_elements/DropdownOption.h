@@ -5,5 +5,5 @@
 
 struct DropdownOption {
   std::string name;
-  std::function<void()> value;
+  std::function<bool()> value;
 };

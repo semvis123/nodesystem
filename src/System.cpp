@@ -1,11 +1,9 @@
 #include "System.h"
 
-System::System(SDL_Renderer *renderer) {
+System::System(SDL_Renderer *renderer, SDL_Window *window) {
   this->renderer = renderer;
+  this->window = window;
   createMenu();
-}
-
-System::~System() {
 }
 
 void System::render() {
@@ -27,22 +25,57 @@ void System::handleEvent(SDL_Event *event) {
 }
 
 void System::createMenu() {
+  // get window width and height
+  int windowWidth, windowHeight;
+  SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
+  // center the file dialog
+  int x = (windowWidth - 400) / 2;
+  int y = (windowHeight - 400) / 2;
+
+  // get the current executable path
+  char *path = SDL_GetBasePath();
+  std::string path_above = std::string(path) + "../";
+  SDL_free(path);
+  
+  FileDialog *fileDialog = new FileDialog(FileDialogMode::Open, "Open File", path_above, {}, x, y, 400, 400);
+  fileDialog->setCallback([this, fileDialog](std::optional<std::string> filePath) {
+    if (filePath.has_value()) {
+      printf("File path: %s\n", filePath.value().c_str());
+    } else {
+      printf("File dialog was canceled\n");
+      fileDialog->close();
+    }
+  });
+
+  eventHandlers.push_back(fileDialog);
+  renderables.push_back(fileDialog);
+
   std::vector<DropdownOption> options;
-  options.push_back({"Open", []() { printf("open file\n"); }});
-  options.push_back({"Save", []() { printf("save file\n"); }});
-  options.push_back({"Save as", []() { printf("save as\n"); }});
+  options.push_back({"Open", [fileDialog]() -> bool {
+                       fileDialog->showFileDialog();
+                       return true;
+                     }});
+  options.push_back({"Save", []() {
+                       printf("save file\n");
+                       return false;
+                     }});
+  options.push_back({"Save as", []() {
+                       printf("save as\n");
+                       return false;
+                     }});
 
   DropdownMenu *dropdownMenu = new DropdownMenu("File", 0, 0, 100, 30, options);
   eventHandlers.push_back(dropdownMenu);
   renderables.push_back(dropdownMenu);
 
-  SelectionList *selectionList = new SelectionList(
-      {"Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6", "Item 7", "Item 8", "Item 9", "Item 10"},
-      200, 100, 200, 200);
-  eventHandlers.push_back(selectionList);
-  renderables.push_back(selectionList);
+  // SelectionList *selectionList = new SelectionList(
+  //     {"Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6", "Item 7", "Item 8", "Item 9", "Item
+  //     10"}, 200, 100, 200, 200);
+  // eventHandlers.push_back(selectionList);
+  // renderables.push_back(selectionList);
 
-  EditableTextBox *editableTextBox = new EditableTextBox("Placeholder", "", 400, 100, 200, 30);
-  eventHandlers.push_back(editableTextBox);
-  renderables.push_back(editableTextBox);
+  // EditableTextBox *editableTextBox = new EditableTextBox("Placeholder", "", 400, 100, 200, 30);
+  // eventHandlers.push_back(editableTextBox);
+  // renderables.push_back(editableTextBox);
 }

@@ -68,7 +68,10 @@ void SelectionList::render(SDL_Renderer *renderer) {
   // draw the scroll bar
   int scrollBarHeight = getScrollBarHeight();
   int maxScrollable = (items.size() - (h / itemHeight));
-  int scrollBarOffset = (h - scrollBarHeight) * scrollOffset / maxScrollable;
+  int scrollBarOffset = 0;
+  if (maxScrollable > 0) {
+    scrollBarOffset = (h - scrollBarHeight) * scrollOffset / maxScrollable;
+  }
   int sX = x + w;
   int sY = y + scrollBarOffset;
   boxColor(renderer, sX, sY, sX + scrollBarWidth, sY + scrollBarHeight, indicatorColor);
@@ -84,7 +87,10 @@ void SelectionList::handleEvent(SDL_Event *event) {
 
   // scroll bar
   int maxScrollable = (items.size() - (height / itemHeight));
-  int scrollBarOffset = (height - getScrollBarHeight()) * scrollOffset / maxScrollable;
+  int scrollBarOffset = 0;
+  if (maxScrollable > 0) {
+    scrollBarOffset = (height - getScrollBarHeight()) * scrollOffset / maxScrollable;
+  }
   int scrollBarHeight = getScrollBarHeight();
 
   switch (event->type) {
@@ -98,9 +104,9 @@ void SelectionList::handleEvent(SDL_Event *event) {
           }
         } else {
           // scroll bar
-          if (y < this->y + scrollBarOffset) {
+          if (y < this->y + scrollBarOffset && maxScrollable > 0) {
             scrollOffset -= 1;
-          } else if (y > this->y + scrollBarOffset + getScrollBarHeight()) {
+          } else if (y > this->y + scrollBarOffset + getScrollBarHeight() && maxScrollable > 0) {
             scrollOffset += 1;
           } else {
             // scroll bar grabbed
@@ -146,7 +152,6 @@ void SelectionList::handleEvent(SDL_Event *event) {
 }
 
 int SelectionList::findItemIndexAt(int x, int y) {
-  int maxScrollable = (items.size() - (height / itemHeight));
   int topSpace = 0;
   if (scrollOffset > 0 && (items.size() - scrollOffset) * itemHeight < height) {
     topSpace = -((items.size() - scrollOffset) * itemHeight - height);
@@ -203,5 +208,10 @@ void SelectionList::clearItems() {
 }
 
 int SelectionList::getScrollBarHeight() {
-  return fmax(((80 * height) / (items.size() * itemHeight)), 40);
+  int maxScrollable = (items.size() - (height / itemHeight));
+  if (maxScrollable > 0) {
+    return fmin(fmax(((80 * height) / fmax((items.size() * itemHeight), itemHeight)), 40), height);
+  } else {
+    return height;
+  }
 }

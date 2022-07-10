@@ -10,7 +10,11 @@ DropdownMenu::DropdownMenu(std::string label, int x, int y, int width, int heigh
 
   // Create the dropdown buttons
   for (int i = 0; i < options.size(); i++) {
-    Button *button = new Button(options[i].name, x, y + (i + 1) * height, width, height, options[i].value);
+    Button *button =
+        new Button(options[i].name, x, y + (i + 1) * height, width, height, [options, i, this]() {
+          bool shouldClose = options[i].value();
+          isOpen = isOpen && !shouldClose;
+        });
     this->options.push_back(button);
   }
 }
