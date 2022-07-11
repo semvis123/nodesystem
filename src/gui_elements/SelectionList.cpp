@@ -1,6 +1,6 @@
 #include "SelectionList.h"
 
-SelectionList::SelectionList(std::vector<std::string> items, int x, int y, int width, int height) {
+SelectionList::SelectionList(std::vector<NamedItem> items, int x, int y, int width, int height) {
   this->x = x;
   this->y = y;
   this->width = width;
@@ -35,7 +35,7 @@ void SelectionList::render(SDL_Renderer *renderer) {
 
   for (int i = scrollOffset; i < items.size() && (i - scrollOffset) * itemHeight < h; i++) {
     int itemPositionY = y + (i - scrollOffset) * itemHeight + topSpace;
-    int textPositionX = x + w / 2 - items[i].length() * 4;
+    int textPositionX = x + w / 2 - items[i].name.length() * 4;
     int textPositionY = itemPositionY + itemHeight / 2 - 2;
 
     // item that can only be partially drawn
@@ -47,7 +47,7 @@ void SelectionList::render(SDL_Renderer *renderer) {
 
       // check if the text is visible
       if (-((i - scrollOffset) * itemHeight - h) > itemHeight / 2 + fontHeight / 2) {
-        stringColor(renderer, textPositionX, textPositionY, items[i].c_str(), textColor);
+        stringColor(renderer, textPositionX, textPositionY, items[i].name.c_str(), textColor);
       } else {
         // show that there is another item
         boxColor(renderer, x + w / 4, y + h, x + w / 4 * 3, y + h - 4, indicatorColor);
@@ -61,7 +61,7 @@ void SelectionList::render(SDL_Renderer *renderer) {
       }
       boxColor(renderer, x, itemPositionY, x + w - 1, itemPositionY + itemHeight - 1, color);
       rectangleColor(renderer, x, itemPositionY, x + w, itemPositionY + itemHeight, outlineColor);
-      stringColor(renderer, textPositionX, textPositionY, items[i].c_str(), textColor);
+      stringColor(renderer, textPositionX, textPositionY, items[i].name.c_str(), textColor);
     }
   }
 
@@ -94,7 +94,7 @@ void SelectionList::handleEvent(SDL_Event *event) {
   int scrollBarHeight = getScrollBarHeight();
 
   switch (event->type) {
-    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONDOWN: {
       if (isInside) {
         if (isInsideItem) {
           if (itemIndex == selectedIndex) {
@@ -117,7 +117,8 @@ void SelectionList::handleEvent(SDL_Event *event) {
         }
       }
       break;
-    case SDL_MOUSEMOTION:
+    }
+    case SDL_MOUSEMOTION: {
       if (isInside && isInsideItem) {
         hoveringIndex = itemIndex;
       } else if (hasScrollBar && (height - scrollBarHeight) > 0) {
@@ -128,10 +129,12 @@ void SelectionList::handleEvent(SDL_Event *event) {
         hoveringIndex = -1;
       }
       break;
-    case SDL_MOUSEBUTTONUP:
+    }
+    case SDL_MOUSEBUTTONUP: {
       hasScrollBar = false;
       break;
-    case SDL_MOUSEWHEEL:
+    }
+    case SDL_MOUSEWHEEL: {
       if (isInside) {
         int scrollInterval = 10;
         // check if we moved the scrollbar by mouse
@@ -146,8 +149,10 @@ void SelectionList::handleEvent(SDL_Event *event) {
         scrollOffset = fmin(scrollOffset, maxScrollable);
       }
       break;
-    default:
+    }
+    default: {
       break;
+    }
   }
 }
 
@@ -172,27 +177,30 @@ bool SelectionList::inside(int x, int y) {
   return x >= this->x && x <= this->x + this->width && y >= this->y && y <= this->y + this->height;
 }
 
-std::string SelectionList::getSelectedItem() {
-  return items[selectedIndex];
+std::optional<NamedItem> SelectionList::getSelectedItem() {
+  if (selectedIndex >= 0 && selectedIndex < items.size()) {
+    return items[selectedIndex];
+  }
+  return {};
 }
 
-void SelectionList::setSelectedItem(std::string item) {
+void SelectionList::setSelectedItem(std::string name) {
   for (int i = 0; i < items.size(); i++) {
-    if (items[i] == item) {
+    if (items[i].name == name) {
       selectedIndex = i;
       break;
     }
   }
 }
 
-void SelectionList::addItem(std::string item) {
+void SelectionList::addItem(NamedItem item) {
   items.push_back(item);
 }
 
 bool SelectionList::removeItem(std::string item) {
   bool found = false;
   for (int i = 0; i < items.size(); i++) {
-    if (items.at(i) == item) {
+    if (items.at(i).name == item) {
       items.erase(items.begin() + i);
       found = true;
       if (selectedIndex >= i) {
@@ -203,6 +211,7 @@ bool SelectionList::removeItem(std::string item) {
   }
   return found;
 }
+
 void SelectionList::clearItems() {
   items.clear();
 }

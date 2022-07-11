@@ -11,11 +11,18 @@
 #include <vector>
 
 #include "EventHandler.h"
+#include "NamedItem.h"
 #include "Object.h"
 #include "Renderable.h"
 #include "gui_elements/gui_elements.h"
 
 enum class FileDialogMode { Open, Save };
+enum class FileType { File, Directory };
+struct FileInfo {
+  std::string filename;
+  std::string path;
+  FileType type;
+};
 
 class FileDialog : public Renderable, public EventHandler, virtual public Object {
  private:
@@ -35,7 +42,6 @@ class FileDialog : public Renderable, public EventHandler, virtual public Object
              std::vector<std::string> extensions, int x, int y, int width, int height);
   void showFileDialog();
   void close();
-  std::string getFilePath();
   void handleEvent(SDL_Event *event);
   void render(SDL_Renderer *renderer);
   void setCallback(std::function<void(std::optional<std::string>)> callback);

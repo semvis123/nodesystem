@@ -42,23 +42,27 @@ void FileDialog::handleEvent(SDL_Event *event) {
   }
 }
 
-std::vector<std::string> getFiles(std::string path, std::vector<std::string> extensions) {
+std::vector<NamedItem> getFiles(std::string path, std::vector<std::string> extensions) {
   // Get all filenames in the given path with the given extensions if any
-  std::vector<std::string> files;
+  std::vector<NamedItem> files;
   for (auto &entry : std::filesystem::directory_iterator(path)) {
+    std::string filename = entry.path().filename().string();
+    std::string extension = entry.path().extension().string();
+    FileInfo fileInfo = {filename, entry.path().string(), FileType::File};
     if (entry.is_regular_file()) {
-      std::string filename = entry.path().filename().string();
       if (extensions.size() == 0) {
-        files.push_back(filename);
+        files.push_back({filename, fileInfo});
       } else {
-        for (auto extension : extensions) {
-          if (filename.find(extension) != std::string::npos) {
-            files.push_back(filename);
+        for (auto &ext : extensions) {
+          if (extension == ext) {
+            files.push_back({filename, fileInfo});
+            break;
           }
         }
       }
     } else if (entry.is_directory()) {
-      files.push_back("* " + entry.path().filename().string());
+      fileInfo.type = FileType::Directory;
+      files.push_back({filename, fileInfo});
     }
   }
   printf("%d files found\n", files.size());
@@ -71,6 +75,7 @@ void FileDialog::createElements() {
   int buttonHeight = 30;
   int buttonX = x + buttonPadding;
   int buttonY = y + height - buttonHeight - buttonPadding;
+  int pathBarHeight = 30;
 
   renderables.clear();
   eventHandlers.clear();
@@ -84,11 +89,11 @@ void FileDialog::createElements() {
   renderables.push_back(titleText);
 
   // Create the file dialog list.
-  std::vector<std::string> files = getFiles(initialPath, extensions);
+  std::vector<NamedItem> files = getFiles(initialPath, extensions);
   int listWidth = width - (buttonPadding * 2);
-  int listHeight = height - (buttonPadding * 3) - buttonHeight;
+  int listHeight = height - (buttonPadding * 4) - buttonHeight - pathBarHeight;
   int listX = x + buttonPadding;
-  int listY = y + buttonPadding;
+  int listY = y + buttonPadding * 2 + pathBarHeight;
   SelectionList *fileList = new SelectionList(files, listX, listY, listWidth, listHeight);
   renderables.push_back(fileList);
   eventHandlers.push_back(fileList);
@@ -99,17 +104,26 @@ void FileDialog::createElements() {
   renderables.push_back(openButton);
   eventHandlers.push_back(openButton);
 
-  Button *saveButton = new Button("Open", buttonX + buttonWidth + buttonPadding, buttonY, buttonWidth,
-                                  buttonHeight, [this, fileList]() {
-                                    filePath = fileList->getSelectedItem();
-                                    this->callback(this->filePath);
-                                  });
+  Button *saveButton = new Button(
+      "Open", buttonX + buttonWidth + buttonPadding, buttonY, buttonWidth, buttonHeight, [this, fileList]() {
+        std::optional<NamedItem> file = fileList->getSelectedItem();
+        if (file.has_value()) {
+          FileInfo fileInfo = std::any_cast<FileInfo>(file->value);
+          printf("Selected file: %s\n", fileInfo.path.c_str());
+          printf("Selected file type: %s\n", fileInfo.type == FileType::File ? "File" : "Directory");
+          this->callback(file->name);
+        } else {
+          this->callback({});
+        }
+      });
   renderables.push_back(saveButton);
   eventHandlers.push_back(saveButton);
-}
 
-std::string FileDialog::getFilePath() {
-  return filePath;
+  // Create the file dialog path.
+  EditableTextBox *pathText = new EditableTextBox("Path", initialPath, x + buttonPadding, y + buttonPadding,
+                                                  width - (buttonPadding * 2), pathBarHeight, true);
+  renderables.push_back(pathText);
+  eventHandlers.push_back(pathText);
 }
 
 void FileDialog::setCallback(std::function<void(std::optional<std::string>)> callback) {

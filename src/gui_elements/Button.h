@@ -6,15 +6,16 @@
 #include <functional>
 #include <string>
 
+#include "../Positional.h"
+#include "../Sizable.h"
 #include "EventHandler.h"
 #include "Renderable.h"
 
-class Button : public EventHandler, public Renderable {
+class Button : public EventHandler, public Renderable, virtual public Positional, virtual public Sizable {
  private:
-  int x, y, width, height;
   std::string label;
   std::function<void()> callback;
-  bool isHovering = false, isPressed = false;
+  bool isHovering = false, isPressed = false, isDisabled = false;
   bool inside(int x, int y);
 
  public:
@@ -25,4 +26,5 @@ class Button : public EventHandler, public Renderable {
   void onHover();
   void onLeave();
   void onMouseDown();
+  void setDisabled(bool disabled);
 };
