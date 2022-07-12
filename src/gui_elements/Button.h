@@ -11,7 +11,7 @@
 #include "EventHandler.h"
 #include "Renderable.h"
 
-class Button : public EventHandler, public Renderable, virtual public Positional, virtual public Sizable {
+class Button : public EventHandler, public Renderable, virtual Positional, virtual Sizable {
  private:
   std::string label;
   std::function<void()> callback;

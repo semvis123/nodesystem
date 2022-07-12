@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include "../Positional.h"
+#include "../Sizable.h"
 #include "EventHandler.h"
 #include "Renderable.h"
 
@@ -15,12 +17,11 @@
 #define MODIFIER_KEY KMOD_CTRL
 #endif
 
-class EditableTextBox : public Renderable, public EventHandler {
+class EditableTextBox : public Renderable, public EventHandler, virtual Positional, virtual Sizable {
  private:
   std::string placeholder, text;
   bool hasFocus, renderCursor, isHovering, isPressed;
   int cursorPosition, textRenderOffset = 0, selectionStart, selectionEnd, lastClick;
-  int x, y, width, height;
 
   const int PADDING = 10, TEXT_WIDTH = 8, DOUBLE_CLICK_TIME = 500;
   const uint32_t BG_COLOR = 0xFF244622, BORDER_COLOR = 0xFF000000, TEXT_COLOR = 0xFFFFFFFF,

@@ -5,7 +5,7 @@
 #include "../Renderable.h"
 #include "../Sizable.h"
 
-class Box : public Renderable, virtual public Positional, virtual public Sizable {
+class Box : public Renderable, virtual Positional, virtual Sizable {
  private:
   uint32_t color;
 

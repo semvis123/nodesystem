@@ -6,7 +6,7 @@
 #include "../Positional.h"
 #include "../Renderable.h"
 
-class Text : public Renderable, virtual public Positional {
+class Text : public Renderable, virtual Positional {
  private:
   std::string text;
   uint32_t color;

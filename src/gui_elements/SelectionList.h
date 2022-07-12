@@ -13,10 +13,7 @@
 #include "EventHandler.h"
 #include "Renderable.h"
 
-class SelectionList : public Renderable,
-                      public EventHandler,
-                      virtual public Positional,
-                      virtual public Sizable {
+class SelectionList : public Renderable, public EventHandler, virtual Positional, virtual Sizable {
  private:
   std::vector<NamedItem> items;
   int TEXT_WIDTH = 8, PADDING = 10;

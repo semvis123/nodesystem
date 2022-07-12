@@ -6,12 +6,14 @@
 #include <string>
 #include <vector>
 
+#include "../Positional.h"
+#include "../Renderable.h"
+#include "../Sizable.h"
 #include "Button.h"
 #include "DropdownOption.h"
 
-class DropdownMenu : public Renderable, public EventHandler {
+class DropdownMenu : public Renderable, public EventHandler, public Positional, public Sizable {
  private:
-  int x, y, width, height;
   std::string label;
   bool isOpen = false, isHovering = false, isPressed = false;
   std::vector<Button *> options;
