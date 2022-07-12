@@ -1,11 +1,36 @@
 #include "FileDialog.h"
 
+std::string getParentDirectory(std::string path) {
+  // Get the parent directory of the given path
+  std::string parentDirectory = path;
+  char directorySeparators[] = {'/', '\\'};
+  for (auto &separator : directorySeparators) {
+    bool found = false;
+    if (parentDirectory.back() == separator) {
+      parentDirectory.pop_back();
+      found = true;
+    }
+
+    size_t lastSlash = parentDirectory.find_last_of(separator);
+    size_t firstSlash = parentDirectory.find_first_of(separator);
+    if (lastSlash != std::string::npos && lastSlash != firstSlash) {
+      parentDirectory = parentDirectory.substr(0, lastSlash);
+      found = true;
+    }
+    if (found) {
+      break;
+    }
+  }
+
+  return parentDirectory;
+}
+
 FileDialog::FileDialog(FileDialogMode mode, std::string title, std::string initialPath,
                        std::vector<std::string> extensions, int x, int y, int width, int height) {
   this->mode = mode;
   this->title = title;
-  this->filePath = initialPath;
-  this->initialPath = initialPath;
+  this->filePath = getParentDirectory(initialPath);
+  this->initialPath = this->filePath;
   this->extensions = extensions;
   this->x = x;
   this->y = y;
@@ -65,7 +90,6 @@ std::vector<NamedItem> getFiles(std::string path, std::vector<std::string> exten
       files.push_back({filename, fileInfo});
     }
   }
-  printf("%d files found\n", files.size());
   return files;
 }
 

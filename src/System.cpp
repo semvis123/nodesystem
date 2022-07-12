@@ -35,10 +35,8 @@ void System::createMenu() {
 
   // get the current executable path
   char *path = SDL_GetBasePath();
-  std::string path_above = std::string(path) + "../";
+  FileDialog *fileDialog = new FileDialog(FileDialogMode::Open, "Open File", path, {}, x, y, 400, 400);
   SDL_free(path);
-
-  FileDialog *fileDialog = new FileDialog(FileDialogMode::Open, "Open File", path_above, {}, x, y, 400, 400);
   fileDialog->setCallback([this, fileDialog](std::optional<std::string> filePath) {
     if (filePath.has_value()) {
       printf("File path: %s\n", filePath.value().c_str());
