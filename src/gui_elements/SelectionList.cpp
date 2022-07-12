@@ -45,6 +45,13 @@ void SelectionList::render(SDL_Renderer *renderer) {
     }
 
     bool textVisible = -((i - scrollOffset) * itemHeight - h) > itemHeight / 2 + fontHeight / 2;
+    std::string renderText = items[i].name;
+    int maxTextLength = (width - PADDING * 2) / TEXT_WIDTH;
+    if (renderText.length() > maxTextLength) {
+      renderText = renderText.substr(0, maxTextLength - 3) + "...";
+      textPositionX = x + w / 2 - renderText.length() * 4;
+    }
+
     // item that can only be partially drawn
     if ((i - scrollOffset + 1) * itemHeight >= h) {
       if (textVisible) {
@@ -55,16 +62,16 @@ void SelectionList::render(SDL_Renderer *renderer) {
       lineColor(renderer, x, itemPositionY, x, y + h, outlineColor);
       lineColor(renderer, x + w - 1, itemPositionY, x + w - 1, y + h, outlineColor);
 
-      if (textVisible) {
-        stringColor(renderer, textPositionX, textPositionY, items[i].name.c_str(), textColor);
-      } else {
+      if (!textVisible) {
         // show that there is another item
         boxColor(renderer, x + w / 4, y + h, x + w / 4 * 3, y + h - 4, indicatorColor);
       }
     } else {
       boxColor(renderer, x, itemPositionY, x + w - 1, itemPositionY + itemHeight - 1, color);
       rectangleColor(renderer, x, itemPositionY, x + w, itemPositionY + itemHeight, outlineColor);
-      stringColor(renderer, textPositionX, textPositionY, items[i].name.c_str(), textColor);
+    }
+    if (textVisible) {
+      stringColor(renderer, textPositionX, textPositionY, renderText.c_str(), textColor);
     }
   }
 
@@ -100,11 +107,26 @@ void SelectionList::handleEvent(SDL_Event *event) {
     case SDL_MOUSEBUTTONDOWN: {
       if (isInside) {
         if (isInsideItem) {
-          if (itemIndex == selectedIndex) {
-            selectedIndex = -1;
+          // check if double click
+          if (SDL_GetTicks() - lastClick < 500 && itemIndex == lastClickIndex) {
+            lastClick = 0;
+            if (doubleClickCallback != nullptr) {
+              std::optional<NamedItem> item = getSelectedItem();
+              if (item.has_value()) {
+                doubleClickCallback(item.value());
+              }
+            }
           } else {
-            selectedIndex = itemIndex;
+            if (itemIndex == selectedIndex) {
+              selectedIndex = -1;
+            } else {
+              selectedIndex = itemIndex;
+              lastClickIndex = itemIndex;
+            }
+            lastClick = SDL_GetTicks();
           }
+
+          lastClickIndex = itemIndex;
         } else {
           // scroll bar
           if (y < this->y + scrollBarOffset && maxScrollable > 0) {
@@ -196,10 +218,16 @@ void SelectionList::setSelectedItem(std::string name) {
   }
 }
 
+void SelectionList::setDoubleClickCallback(std::function<void(NamedItem item)> callback) {
+  doubleClickCallback = callback;
+}
+
 void SelectionList::setItems(std::vector<NamedItem> items) {
   this->items = items;
   selectedIndex = -1;
   hoveringIndex = -1;
+  lastClickIndex = -1;
+  lastClick = 0;
   scrollOffset = 0;
 }
 
@@ -229,7 +257,7 @@ void SelectionList::clearItems() {
 int SelectionList::getScrollBarHeight() {
   int maxScrollable = (items.size() - (height / itemHeight));
   if (maxScrollable > 0) {
-    return fmin(fmax(((80 * height) / fmax((items.size() * itemHeight), itemHeight)), 40), height);
+    return fmin(fmax(((140 * height) / fmax((items.size() * itemHeight), itemHeight)), 40), height);
   } else {
     return height;
   }

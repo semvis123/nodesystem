@@ -8,17 +8,24 @@
 #include <vector>
 
 #include "../NamedItem.h"
+#include "../Positional.h"
+#include "../Sizable.h"
 #include "EventHandler.h"
 #include "Renderable.h"
 
-class SelectionList : public Renderable, public EventHandler {
+class SelectionList : public Renderable,
+                      public EventHandler,
+                      virtual public Positional,
+                      virtual public Sizable {
  private:
   std::vector<NamedItem> items;
-  int x, y, width, height;
+  int TEXT_WIDTH = 8, PADDING = 10;
   int selectedIndex = -1, hoveringIndex = -1, scrollOffset = 0, itemHeight = 30, scrollWheelPosition = 0;
   int scrollBarWidth = 10;
-  bool hasScrollBar = false;
   int scrollBarGrabY = 0;
+  bool hasScrollBar = false;
+  std::function<void(NamedItem item)> doubleClickCallback = nullptr;
+  int lastClick = 0, lastClickIndex = -1;
   bool inside(int x, int y);
   int findItemIndexAt(int x, int y);
   int getScrollBarHeight();
@@ -33,4 +40,5 @@ class SelectionList : public Renderable, public EventHandler {
   bool removeItem(std::string item);
   void clearItems();
   void setItems(std::vector<NamedItem> items);
+  void setDoubleClickCallback(std::function<void(NamedItem item)> callback);
 };

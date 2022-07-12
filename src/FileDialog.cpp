@@ -42,7 +42,8 @@ void FileDialog::handleEvent(SDL_Event *event) {
   }
 }
 
-std::vector<NamedItem> getFiles(std::string path, std::vector<std::string> extensions) {
+std::vector<NamedItem> getFiles(std::string path, std::vector<std::string> extensions,
+                                bool showParentDirectory = true) {
   // Get all filenames in the given path with the given extensions if any
   std::vector<NamedItem> files;
   std::string removed;
@@ -60,7 +61,7 @@ std::vector<NamedItem> getFiles(std::string path, std::vector<std::string> exten
     }
   }
 
-  if (parentDirectory != path) {
+  if (parentDirectory != path && showParentDirectory) {
     FileInfo parentDirectoryFileInfo = {"..", parentDirectory, FileType::Directory};
     files.push_back(NamedItem({"..", parentDirectoryFileInfo}));
   }
@@ -118,6 +119,17 @@ void FileDialog::createElements() {
   fileList = new SelectionList(files, listX, listY, listWidth, listHeight);
   renderables.push_back(fileList);
   eventHandlers.push_back(fileList);
+
+  fileList->setDoubleClickCallback([this](NamedItem item) {
+    FileInfo fileInfo = std::any_cast<FileInfo>(item.value);
+    if (fileInfo.type == FileType::Directory) {
+      setFilePath(fileInfo.path);
+    } else {
+      if (callback) {
+        callback(fileInfo.path);
+      }
+    }
+  });
 
   // Create the file dialog buttons.
   Button *openButton =
