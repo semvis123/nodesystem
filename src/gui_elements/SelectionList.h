@@ -32,4 +32,5 @@ class SelectionList : public Renderable, public EventHandler {
   void addItem(NamedItem item);
   bool removeItem(std::string item);
   void clearItems();
+  void setItems(std::vector<NamedItem> items);
 };

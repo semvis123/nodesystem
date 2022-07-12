@@ -1,35 +1,10 @@
 #include "FileDialog.h"
 
-std::string getParentDirectory(std::string path) {
-  // Get the parent directory of the given path
-  std::string parentDirectory = path;
-  char directorySeparators[] = {'/', '\\'};
-  for (auto &separator : directorySeparators) {
-    bool found = false;
-    if (parentDirectory.back() == separator) {
-      parentDirectory.pop_back();
-      found = true;
-    }
-
-    size_t lastSlash = parentDirectory.find_last_of(separator);
-    size_t firstSlash = parentDirectory.find_first_of(separator);
-    if (lastSlash != std::string::npos && lastSlash != firstSlash) {
-      parentDirectory = parentDirectory.substr(0, lastSlash);
-      found = true;
-    }
-    if (found) {
-      break;
-    }
-  }
-
-  return parentDirectory;
-}
-
 FileDialog::FileDialog(FileDialogMode mode, std::string title, std::string initialPath,
                        std::vector<std::string> extensions, int x, int y, int width, int height) {
   this->mode = mode;
   this->title = title;
-  this->filePath = getParentDirectory(initialPath);
+  this->filePath = initialPath;
   this->initialPath = this->filePath;
   this->extensions = extensions;
   this->x = x;
@@ -70,6 +45,26 @@ void FileDialog::handleEvent(SDL_Event *event) {
 std::vector<NamedItem> getFiles(std::string path, std::vector<std::string> extensions) {
   // Get all filenames in the given path with the given extensions if any
   std::vector<NamedItem> files;
+  std::string removed;
+  std::filesystem::path fsPath = path;
+  if ((path.back() == std::filesystem::path::preferred_separator) && (fsPath.root_path() != fsPath)) {
+    removed = path.back();
+    path.pop_back();
+  }
+
+  std::string parentDirectory = std::filesystem::path(path).parent_path().string();
+
+  for (std::string *p : {&path, &parentDirectory}) {
+    if (p->back() != std::filesystem::path::preferred_separator) {
+      p->push_back(std::filesystem::path::preferred_separator);
+    }
+  }
+
+  if (parentDirectory != path) {
+    FileInfo parentDirectoryFileInfo = {"..", parentDirectory, FileType::Directory};
+    files.push_back(NamedItem({"..", parentDirectoryFileInfo}));
+  }
+
   for (auto &entry : std::filesystem::directory_iterator(path)) {
     std::string filename = entry.path().filename().string();
     std::string extension = entry.path().extension().string();
@@ -87,6 +82,8 @@ std::vector<NamedItem> getFiles(std::string path, std::vector<std::string> exten
       }
     } else if (entry.is_directory()) {
       fileInfo.type = FileType::Directory;
+      fileInfo.path += std::filesystem::path::preferred_separator;
+      filename += std::filesystem::path::preferred_separator;
       files.push_back({filename, fileInfo});
     }
   }
@@ -118,7 +115,7 @@ void FileDialog::createElements() {
   int listHeight = height - (buttonPadding * 4) - buttonHeight - pathBarHeight;
   int listX = x + buttonPadding;
   int listY = y + buttonPadding * 2 + pathBarHeight;
-  SelectionList *fileList = new SelectionList(files, listX, listY, listWidth, listHeight);
+  fileList = new SelectionList(files, listX, listY, listWidth, listHeight);
   renderables.push_back(fileList);
   eventHandlers.push_back(fileList);
 
@@ -128,13 +125,18 @@ void FileDialog::createElements() {
   renderables.push_back(openButton);
   eventHandlers.push_back(openButton);
 
-  Button *saveButton = new Button(
-      "Open", buttonX + buttonWidth + buttonPadding, buttonY, buttonWidth, buttonHeight, [this, fileList]() {
+  Button *saveButton =
+      new Button("Open", buttonX + buttonWidth + buttonPadding, buttonY, buttonWidth, buttonHeight, [this]() {
         std::optional<NamedItem> file = fileList->getSelectedItem();
         if (file.has_value()) {
           FileInfo fileInfo = std::any_cast<FileInfo>(file->value);
+
           printf("Selected file: %s\n", fileInfo.path.c_str());
           printf("Selected file type: %s\n", fileInfo.type == FileType::File ? "File" : "Directory");
+          if (fileInfo.type == FileType::Directory) {
+            setFilePath(fileInfo.path);
+            return;
+          }
           this->callback(file->name);
         } else {
           this->callback({});
@@ -144,10 +146,16 @@ void FileDialog::createElements() {
   eventHandlers.push_back(saveButton);
 
   // Create the file dialog path.
-  EditableTextBox *pathText = new EditableTextBox("Path", initialPath, x + buttonPadding, y + buttonPadding,
-                                                  width - (buttonPadding * 2), pathBarHeight, true);
+  pathText = new EditableTextBox("Path", initialPath, x + buttonPadding, y + buttonPadding,
+                                 width - (buttonPadding * 2), pathBarHeight, true);
   renderables.push_back(pathText);
   eventHandlers.push_back(pathText);
+}
+
+void FileDialog::setFilePath(std::string path) {
+  filePath = path;
+  fileList->setItems(getFiles(filePath, extensions));
+  pathText->setText(filePath);
 }
 
 void FileDialog::setCallback(std::function<void(std::optional<std::string>)> callback) {

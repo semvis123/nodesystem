@@ -32,6 +32,8 @@ class FileDialog : public Renderable, public EventHandler, virtual public Object
   std::vector<Renderable *> renderables;
   std::vector<EventHandler *> eventHandlers;
   std::function<void(std::optional<std::string>)> callback;
+  SelectionList *fileList;
+  EditableTextBox *pathText;
 
   bool visible;
 
@@ -45,4 +47,5 @@ class FileDialog : public Renderable, public EventHandler, virtual public Object
   void handleEvent(SDL_Event *event);
   void render(SDL_Renderer *renderer);
   void setCallback(std::function<void(std::optional<std::string>)> callback);
+  void setFilePath(std::string path);
 };

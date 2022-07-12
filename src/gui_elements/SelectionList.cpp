@@ -196,6 +196,13 @@ void SelectionList::setSelectedItem(std::string name) {
   }
 }
 
+void SelectionList::setItems(std::vector<NamedItem> items) {
+  this->items = items;
+  selectedIndex = -1;
+  hoveringIndex = -1;
+  scrollOffset = 0;
+}
+
 void SelectionList::addItem(NamedItem item) {
   items.push_back(item);
 }
