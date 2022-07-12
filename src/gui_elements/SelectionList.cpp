@@ -37,28 +37,31 @@ void SelectionList::render(SDL_Renderer *renderer) {
     int itemPositionY = y + (i - scrollOffset) * itemHeight + topSpace;
     int textPositionX = x + w / 2 - items[i].name.length() * 4;
     int textPositionY = itemPositionY + itemHeight / 2 - 2;
+    int color = bgColor;
+    if (i == selectedIndex) {
+      color = selectedColor;
+    } else if (i == hoveringIndex) {
+      color = hoverColor;
+    }
 
+    bool textVisible = -((i - scrollOffset) * itemHeight - h) > itemHeight / 2 + fontHeight / 2;
     // item that can only be partially drawn
     if ((i - scrollOffset + 1) * itemHeight >= h) {
+      if (textVisible) {
+        boxColor(renderer, x, itemPositionY, x + w, itemPositionY + itemHeight, color);
+      }
       // we only need to draw the upper lines
       lineColor(renderer, x, itemPositionY, x + w - 1, itemPositionY, outlineColor);
       lineColor(renderer, x, itemPositionY, x, y + h, outlineColor);
       lineColor(renderer, x + w - 1, itemPositionY, x + w - 1, y + h, outlineColor);
 
-      // check if the text is visible
-      if (-((i - scrollOffset) * itemHeight - h) > itemHeight / 2 + fontHeight / 2) {
+      if (textVisible) {
         stringColor(renderer, textPositionX, textPositionY, items[i].name.c_str(), textColor);
       } else {
         // show that there is another item
         boxColor(renderer, x + w / 4, y + h, x + w / 4 * 3, y + h - 4, indicatorColor);
       }
     } else {
-      int color = bgColor;
-      if (i == selectedIndex) {
-        color = selectedColor;
-      } else if (i == hoveringIndex) {
-        color = hoverColor;
-      }
       boxColor(renderer, x, itemPositionY, x + w - 1, itemPositionY + itemHeight - 1, color);
       rectangleColor(renderer, x, itemPositionY, x + w, itemPositionY + itemHeight, outlineColor);
       stringColor(renderer, textPositionX, textPositionY, items[i].name.c_str(), textColor);
