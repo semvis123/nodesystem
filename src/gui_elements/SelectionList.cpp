@@ -52,8 +52,13 @@ void SelectionList::render(SDL_Renderer *renderer) {
       textPositionX = x + w / 2 - renderText.length() * 4;
     }
 
-    // item that can only be partially drawn
-    if ((i - scrollOffset + 1) * itemHeight >= h) {
+    // draw the list item
+    if ((i - scrollOffset + 1) * itemHeight < h) {
+      // normal item
+      boxColor(renderer, x, itemPositionY, x + w - 1, itemPositionY + itemHeight - 1, color);
+      rectangleColor(renderer, x, itemPositionY, x + w, itemPositionY + itemHeight, outlineColor);
+    } else {
+      // item that can only be partially drawn
       if (textVisible) {
         boxColor(renderer, x, itemPositionY, x + w, itemPositionY + itemHeight, color);
       }
@@ -66,9 +71,6 @@ void SelectionList::render(SDL_Renderer *renderer) {
         // show that there is another item
         boxColor(renderer, x + w / 4, y + h, x + w / 4 * 3, y + h - 4, indicatorColor);
       }
-    } else {
-      boxColor(renderer, x, itemPositionY, x + w - 1, itemPositionY + itemHeight - 1, color);
-      rectangleColor(renderer, x, itemPositionY, x + w, itemPositionY + itemHeight, outlineColor);
     }
     if (textVisible) {
       stringColor(renderer, textPositionX, textPositionY, renderText.c_str(), textColor);
