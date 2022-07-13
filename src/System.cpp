@@ -22,6 +22,9 @@ void System::handleEvent(SDL_Event *event) {
   for (int i = 0; i < eventHandlers.size(); i++) {
     eventHandlers[i]->handleEvent(event);
   }
+
+  // TODO: handle resize event, recenter the filedialog maybe?
+  // position anchors would be nice too, but that's a bit more work.
 }
 
 void System::createMenu() {
@@ -40,6 +43,7 @@ void System::createMenu() {
   fileDialog->setCallback([this, fileDialog](std::optional<std::string> filePath) {
     if (filePath.has_value()) {
       printf("File path: %s\n", filePath.value().c_str());
+      SDL_SetWindowTitle(window, ("Nodesystem - " + filePath.value()).c_str());
     } else {
       printf("File dialog was canceled\n");
       fileDialog->close();
