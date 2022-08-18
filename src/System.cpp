@@ -54,6 +54,12 @@ void System::createMenu() {
   renderables.push_back(fileDialog);
 
   std::vector<DropdownOption> options;
+  options.push_back({"New", []() -> bool {
+                       printf("New\n");
+
+                       return true;
+                     }});
+
   options.push_back({"Open", [fileDialog]() -> bool {
                        fileDialog->showFileDialog();
                        return true;

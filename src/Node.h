@@ -1,9 +1,10 @@
 #include <SDL2/SDL.h>
 
 #include "EventHandler.h"
+#include "Object.h"
 #include "Renderable.h"
 
-class Node : public EventHandler, public Renderable {
+class Node : public EventHandler, public Renderable, public Object {
  private:
   /* data */
  public:
