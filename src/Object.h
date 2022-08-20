@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Positional.h"
 #include "Sizable.h"
 

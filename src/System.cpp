@@ -3,10 +3,14 @@
 System::System(SDL_Renderer *renderer, SDL_Window *window) {
   this->renderer = renderer;
   this->window = window;
+  this->nodeManager = new NodeManager();
+
   createMenu();
 }
 
 void System::render() {
+  nodeManager->update();
+
   SDL_RenderClear(renderer);
 
   for (int i = 0; i < renderables.size(); i++) {
