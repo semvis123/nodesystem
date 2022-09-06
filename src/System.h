@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "FileDialog.h"
+#include "Node.h"
 #include "NodeManager.h"
 #include "gui_elements/gui_elements.h"
 
