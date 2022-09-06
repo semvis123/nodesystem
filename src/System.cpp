@@ -54,6 +54,17 @@ void System::createMenu() {
     }
   });
 
+  Node *node = new Node(x + 100, y + 100, 100, 100, 0);
+  renderables.push_back(node);
+  eventHandlers.push_back(node);
+  nodeManager->registerForUpdate(node);
+
+  Node *node2 = new Node(x + 250, y + 100, 100, 100, 1);
+  renderables.push_back(node2);
+  eventHandlers.push_back(node2);
+
+  node->addOutput(node2);
+
   eventHandlers.push_back(fileDialog);
   renderables.push_back(fileDialog);
 
