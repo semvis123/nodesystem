@@ -18,8 +18,8 @@ void System::render() {
   }
 
   SDL_SetRenderDrawColor(renderer, 130, 130, 130, 255);  // background color
-  SDL_Delay(1000 / 60);
   SDL_RenderPresent(renderer);
+  SDL_Delay(1000 / 60);
 }
 
 void System::handleEvent(SDL_Event *event) {
